@@ -3,6 +3,7 @@
 The Replacement Loop is a single-page, LinkedIn-style parody app that cycles through a sequence of mock posts showing an AI-driven "replace everyone" storyline, eventually looping back to the starting role.
 
 It is a static frontend project (no build step) built with plain HTML, CSS, and JavaScript.
+This project is intended for Pasha's personal LinkedIn page content.
 
 ## What This App Includes
 
