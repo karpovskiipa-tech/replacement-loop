@@ -9,7 +9,3 @@ It is a static frontend project (no build step) built with plain HTML, CSS, and 
 - A role timeline and auto-advancing carousel of posts
 - LinkedIn-inspired post cards, reactions, and engagement stats
 - Local media assets in `assets/` plus a sprite-based avatar sheet (`avatars-grid.png`)
-
-## Run Locally
-
-Open `index.html` in any modern browser.
