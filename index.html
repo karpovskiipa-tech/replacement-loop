@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Style Replacement Carousel</title>
+  <style>
+    :root {
+      --frame: 1000px;
+      --bg-page: #e9e5df;
+      --bg-feed: #f3f2ef;
+      --bg-card: #ffffff;
+      --line: #d9d9d9;
+      --text: #1f1f1f;
+      --muted: #666666;
+      --active: #1f1f1f;
+      --inactive: #adadad;
+      --blue: #0a66c2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text);
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    .frame {
+      width: 1000px;
+      min-width: 1000px;
+      max-width: 1000px;
+      height: 1000px;
+      min-height: 1000px;
+      max-height: 1000px;
+      border: 1px solid #cdcdcd;
+      background: var(--bg-feed);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 30% 70%;
+      flex: 0 0 auto;
+    }
+
+    .top-nav {
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 34px 22px 0;
+      background: var(--bg-feed);
+    }
+
+    .top-nav-inner {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .top-title {
+      margin: 0;
+      font-size: 60px;
+      line-height: 1;
+      font-weight: 700;
+      color: #111111;
+      letter-spacing: -0.01em;
+      transform: translateY(-20px);
+    }
+
+    .nav-line {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow-x: hidden;
+      overflow-y: visible;
+      text-overflow: ellipsis;
+      user-select: none;
+      padding-bottom: 8px;
+    }
+
+    .role-token {
+      font-size: 30px;
+      line-height: 1.15;
+      font-weight: 600;
+      color: var(--inactive);
+      transition: color 180ms ease;
+      flex: 0 0 auto;
+      display: inline-block;
+    }
+
+    .role-token.is-active {
+      color: var(--active);
+    }
+
+    .arrow {
+      font-size: 24px;
+      line-height: 1.15;
+      color: #c3c3c3;
+      flex: 0 0 auto;
+    }
+
+    .feed-zone {
+      padding: 14px;
+      background: var(--bg-feed);
+      overflow: hidden;
+    }
+
+    .feed-shell {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-track {
+      width: 200%;
+      height: 100%;
+      display: flex;
+      transform: translateX(0);
+      transition: transform 760ms cubic-bezier(0.2, 0.78, 0.2, 1);
+      will-change: transform;
+    }
+
+    .slide-track.no-transition {
+      transition: none;
+    }
+
+    .slide {
+      width: 50%;
+      flex: 0 0 50%;
+      height: 100%;
+      overflow: hidden;
+      backface-visibility: hidden;
+    }
+
+    .post-card {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .post-main {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .post-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(140deg, #1d75cf, #0a66c2);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    .avatar.avatar-sprite {
+      background-image: var(--avatar-image);
+      background-size: 400% 400%;
+      background-position: var(--avatar-x, 0%) var(--avatar-y, 0%);
+      background-repeat: no-repeat;
+      background-color: #d0d0d0;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .meta {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-top: 1px;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: wrap;
+      line-height: 1.2;
+    }
+
+    .name {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 600;
+      color: #191919;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .dot,
+    .follow {
+      font-size: 14px;
+      line-height: 1;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.2;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .time {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.2;
+      color: #666;
+    }
+
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #676767;
+      line-height: 1;
+      padding-top: 2px;
+      user-select: none;
+    }
+
+    .icon-btn {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      display: block;
+    }
+
+    .copy {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .copy-line {
+      margin: 0;
+      flex: 1;
+      min-width: 0;
+      font-size: 30px;
+      line-height: 1.2;
+      color: #1f1f1f;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 1.2em;
+    }
+
+    .copy-line .hashtag {
+      color: #0a66c2;
+      font-weight: 700;
+    }
+
+    .more {
+      border: 0;
+      background: transparent;
+      color: #666;
+      padding: 0;
+      font-size: 27px;
+      line-height: 1;
+      cursor: pointer;
+      flex: 0 0 auto;
+      margin-bottom: 1px;
+    }
+
+    .copy.expanded {
+      display: block;
+    }
+
+    .copy.expanded .copy-line {
+      white-space: normal;
+      overflow: visible;
+      font-size: 19px;
+      line-height: 1.35;
+    }
+
+    .copy.expanded .more {
+      margin-top: 6px;
+      font-size: 18px;
+    }
+
+    .media {
+      margin-top: 6px;
+      height: 292px;
+      border-top: 1px solid #e6e6e6;
+      border-bottom: 1px solid #e2e2e2;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(130deg, #7688aa, #394358);
+    }
+
+    .media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .stats {
+      border-bottom: 1px solid #e5e5e5;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #666;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .stats-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .reaction-icons {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .reaction-icons img {
+      width: 16px;
+      height: 16px;
+      display: block;
+      margin-right: -2px;
+    }
+
+    .stats-right {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .reactions-title {
+      margin: 0;
+      padding: 10px 14px 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #202020;
+      line-height: 1;
+    }
+
+    .facepile {
+      padding: 0 14px 10px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .face {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      overflow: visible;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .face-photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid #d0d0d0;
+      background: linear-gradient(130deg, #d7d7d7, #bdbdbd);
+    }
+
+    .face-photo.face-sprite {
+      background-image: var(--avatar-image);
+      background-size: 400% 400%;
+      background-position: var(--avatar-x, 0%) var(--avatar-y, 0%);
+      background-repeat: no-repeat;
+      background-color: #d0d0d0;
+    }
+
+    .face-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .face-reaction {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .face-reaction img {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+
+    .more-faces {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 1px solid #b8b8b8;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      color: #666;
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .actions {
+      border-bottom: 1px solid #e5e5e5;
+      display: grid;
+      grid-template-columns: auto repeat(4, minmax(0, 1fr));
+      align-items: center;
+      gap: 0;
+      padding: 0 8px;
+    }
+
+    .identity {
+      padding: 10px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .identity-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(140deg, #3d3d3d, #1f1f1f);
+      flex: 0 0 auto;
+    }
+
+    .identity-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .action {
+      border: 0;
+      background: transparent;
+      color: #666;
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 600;
+      padding: 12px 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: default;
+    }
+
+    .action svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: 0 0 auto;
+    }
+
+    .comment-row {
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .my-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(140deg, #3d3d3d, #1f1f1f);
+      flex: 0 0 auto;
+    }
+
+    .my-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .comment-box {
+      border: 1px solid #b6b6b6;
+      border-radius: 22px;
+      min-height: 42px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #666;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .comment-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #666;
+    }
+
+    .comment-icons svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <section class="top-nav">
+      <div class="top-nav-inner">
+        <h1 class="top-title">The Replacement Loop</h1>
+        <div class="nav-line" id="nav-line"></div>
+      </div>
+    </section>
+
+    <section class="feed-zone">
+      <div class="feed-shell">
+        <div class="slide-track" id="slide-track">
+          <article class="slide" id="slide-front"></article>
+          <article class="slide" id="slide-back"></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const REACTION_ICONS = {
+      like: "https://static.licdn.com/aero-v1/sc/h/8ekq8gho1ruaf8i7f86vd1ftt",
+      celebrate: "https://static.licdn.com/aero-v1/sc/h/b1dl5jk88euc7e9ri50xy5qo8",
+      love: "https://static.licdn.com/aero-v1/sc/h/cpho5fghnpme8epox8rdcds22"
+    };
+
+    const FACE_REACTION_ICONS = {
+      like: "https://static.licdn.com/aero-v1/sc/h/4c1dzspg0yqfip47a9y26tnx8",
+      celebrate: "https://static.licdn.com/aero-v1/sc/h/72p0gef8k748mc8rq861vx9bh",
+      love: "https://static.licdn.com/aero-v1/sc/h/7y5llkdpxktvffo2q2d1ni7s9"
+    };
+
+    const selfAvatar = "https://media.licdn.com/dms/image/v2/D4E03AQF7x2QpRtV0CA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1684768503909?e=1773273600&v=beta&t=HQXsFtR0YoI6RQ-HzpUQZty96iEF-JDFi2EBuWDKkT8";
+    const AVATAR_SPRITE = "avatars-grid.png";
+
+    const posts = [
+      {
+        role: "Designer",
+        name: "Mila Voss",
+        headline: "Designer at AI Slop Inc",
+        time: "2w",
+        avatarSprite: AVATAR_SPRITE,
+        avatarCol: 2,
+        avatarRow: 2,
+        line: "Replaced all the stock sites. #NanoBananaPro",
+        full: "Replaced all the stock sites by moving campaign visuals to prompt packs and custom references. #NanoBananaPro",
+        media: "assets/nanobananapro.png",
+        likes: 367,
+        comments: 25,
+        reposts: 13
+      },
+      {
+        role: "Marketer",
+        name: "Jonas Reed",
+        headline: "Marketer at AI Slop Inc",
+        time: "1w",
+        avatarSprite: AVATAR_SPRITE,
+        avatarCol: 0,
+        avatarRow: 0,
+        line: "Replaced a design studio. #N8N",
+        full: "Replaced a design studio by generating campaign variants and landing assets in one workflow. #N8N",
+        media: "assets/n8n.webp",
+        likes: 492,
+        comments: 39,
+        reposts: 19
+      },
+      {
+        role: "CMO",
+        name: "Erika Sloan",
+        headline: "CMO at AI Slop Inc",
+        time: "6d",
+        avatarSprite: AVATAR_SPRITE,
+        avatarCol: 3,
+        avatarRow: 1,
+        line: "Replaced a content team. #Breeze",
+        full: "Replaced a content team because briefs, posts, and launch copy now ship from one model-driven pipeline. #Breeze",
+        media: "assets/breeze.webp",
+        likes: 611,
+        comments: 64,
+        reposts: 31
+      },
+      {
+        role: "CEO",
+        name: "Rafael Grant",
+        headline: "CEO at AI Slop Inc",
+        time: "4d",
+        avatarSprite: AVATAR_SPRITE,
+        avatarCol: 3,
+        avatarRow: 0,
+        line: "Replaced the marketing department. #OpenClaw",
+        full: "Replaced the marketing department after centralizing planning, execution, and reporting in one AI ops layer. #OpenClaw",
+        media: "assets/openclaw.webp",
+        likes: 744,
+        comments: 82,
+        reposts: 47
+      },
+      {
+        role: "Founder",
+        name: "Nora Lin",
+        headline: "Founder at AI Slop Inc",
+        time: "2d",
+        avatarSprite: AVATAR_SPRITE,
+        avatarCol: 2,
+        avatarRow: 3,
+        line: "Laid off the entire staff like my #LinkedInBro suggested.",
+        full: "Laid off the entire staff like my #LinkedInBro suggested.",
+        media: "assets/linkedin-bro.jpg",
+        likes: 835,
+        comments: 104,
+        reposts: 58
+      },
+      {
+        role: "Designer",
+        name: "Mila Voss",
+        headline: "Founder at New AI Slop Inc",
+        time: "1d",
+        avatarSprite: AVATAR_SPRITE,
+        avatarCol: 2,
+        avatarRow: 2,
+        line: "Vibe-coded founder product in a weekend. #Codex",
+        full: "Vibe-coded the founder product in a weekend, closed the loop, and kicked the cycle back to Designer. #Codex",
+        media: "assets/codex.png",
+        likes: 902,
+        comments: 129,
+        reposts: 72
+      }
+    ];
+
+    const NON_EMPLOYEE_SPRITE_FACES = [
+      { col: 1, row: 0 },
+      { col: 2, row: 0 },
+      { col: 0, row: 1 },
+      { col: 1, row: 1 },
+      { col: 2, row: 1 },
+      { col: 0, row: 2 },
+      { col: 1, row: 2 },
+      { col: 3, row: 2 },
+      { col: 0, row: 3 },
+      { col: 1, row: 3 }
+    ];
+
+    const REACTION_SEQUENCE = ["like", "celebrate", "love"];
+    const aiSlopAvatarKeys = new Set(posts.map((post) => `${post.avatarCol},${post.avatarRow}`));
+    const reactorFaces = NON_EMPLOYEE_SPRITE_FACES
+      .filter((face) => !aiSlopAvatarKeys.has(`${face.col},${face.row}`))
+      .map((face, idx) => ({ ...face, reaction: REACTION_SEQUENCE[idx % REACTION_SEQUENCE.length] }));
+
+    const navLine = document.getElementById("nav-line");
+    const slideTrack = document.getElementById("slide-track");
+    const front = document.getElementById("slide-front");
+    const back = document.getElementById("slide-back");
+
+    const roleNodes = [];
+    let current = 0;
+    let animating = false;
+
+    function buildNav() {
+      posts.forEach((post, idx) => {
+        const token = document.createElement("span");
+        token.className = "role-token";
+        token.textContent = post.role;
+        navLine.appendChild(token);
+        roleNodes.push(token);
+
+        if (idx < posts.length - 1) {
+          const arrow = document.createElement("span");
+          arrow.className = "arrow";
+          arrow.innerHTML = "&rarr;";
+          navLine.appendChild(arrow);
+        }
+      });
+    }
+
+    function updateNav(index) {
+      roleNodes.forEach((node, i) => {
+        node.classList.toggle("is-active", i === index);
+      });
+    }
+
+    function reactionIconsMarkup() {
+      return `
+        <span class="reaction-icons" aria-hidden="true">
+          <img src="${REACTION_ICONS.like}" alt="like">
+          <img src="${REACTION_ICONS.celebrate}" alt="celebrate">
+          <img src="${REACTION_ICONS.love}" alt="love">
+        </span>
+      `;
+    }
+
+    function facepileMarkup() {
+      const visible = reactorFaces.slice(0, 8);
+      const hiddenCount = Math.max(0, reactorFaces.length - visible.length);
+
+      const faces = visible.map((face) => `
+        <div class="face">
+          <div
+            class="face-photo face-sprite"
+            style="--avatar-image: url('${AVATAR_SPRITE}'); --avatar-x: ${(face.col / 3) * 100}%; --avatar-y: ${(face.row / 3) * 100}%"
+            aria-label="reactor avatar"
+          ></div>
+          <span class="face-reaction"><img src="${FACE_REACTION_ICONS[face.reaction]}" alt="${face.reaction}"></span>
+        </div>
+      `).join("");
+      const more = hiddenCount > 0 ? `<div class="more-faces">+${hiddenCount}</div>` : "";
+      return `${faces}${more}`;
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function formatHashtags(text) {
+      const safe = escapeHtml(text);
+      return safe.replace(/(^|\s)(#[A-Za-z0-9_]+)/g, "$1<span class=\"hashtag\">$2</span>");
+    }
+
+    function avatarMarkup(post) {
+      if (post.avatarSprite) {
+        const x = (post.avatarCol / 3) * 100;
+        const y = (post.avatarRow / 3) * 100;
+        return `
+          <div
+            class="avatar avatar-sprite"
+            style="--avatar-image: url('${post.avatarSprite}'); --avatar-x: ${x}%; --avatar-y: ${y}%"
+            aria-label="${post.name} avatar"
+          ></div>
+        `;
+      }
+
+      return `
+        <div class="avatar">
+          <img src="${post.avatar}" alt="${post.name} avatar" onerror="this.style.display='none'; this.parentElement.textContent='${post.name.slice(0,2).toUpperCase()}';">
+        </div>
+      `;
+    }
+
+    function renderPost(target, post) {
+      target.innerHTML = `
+        <article class="post-card">
+          <div class="post-main">
+            <header class="post-header">
+              ${avatarMarkup(post)}
+              <div class="meta">
+                <div class="name-row">
+                  <h2 class="name">${post.name}</h2>
+                  <span class="dot">&middot;</span>
+                  <span class="follow">Following</span>
+                </div>
+                <p class="headline">${post.headline}</p>
+                <p class="time">${post.time} &middot; Public</p>
+              </div>
+              <div class="menu" aria-hidden="true">
+                <span class="icon-btn">
+                  <svg viewBox="0 0 16 16"><path d="M3.25 8C3.25 8.69 2.69 9.25 2 9.25C1.31 9.25 0.75 8.69 0.75 8C0.75 7.31 1.31 6.75 2 6.75C2.69 6.75 3.25 7.31 3.25 8ZM14 6.75C13.31 6.75 12.75 7.31 12.75 8C12.75 8.69 13.31 9.25 14 9.25C14.69 9.25 15.25 8.69 15.25 8C15.25 7.31 14.69 6.75 14 6.75ZM8 6.75C7.31 6.75 6.75 7.31 6.75 8C6.75 8.69 7.31 9.25 8 9.25C8.69 9.25 9.25 8.69 9.25 8C9.25 7.31 8.69 6.75 8 6.75Z"></path></svg>
+                </span>
+                <span class="icon-btn">
+                  <svg viewBox="0 0 16 16"><path d="M13.78 12.72C14.07 13.01 14.07 13.49 13.78 13.78C13.63 13.93 13.44 14 13.25 14C13.06 14 12.87 13.93 12.72 13.78L8 9.06L3.28 13.78C3.13 13.93 2.94 14 2.75 14C2.56 14 2.37 13.93 2.22 13.78C1.93 13.49 1.93 13.01 2.22 12.72L6.94 8L2.22 3.28C1.93 2.99 1.93 2.51 2.22 2.22C2.51 1.93 2.99 1.93 3.28 2.22L8 6.94L12.72 2.22C13.01 1.93 13.49 1.93 13.78 2.22C14.07 2.51 14.07 2.99 13.78 3.28L9.06 8L13.78 12.72Z"></path></svg>
+                </span>
+              </div>
+            </header>
+
+            <section class="copy" data-copy>
+              <p class="copy-line" data-copy-line></p>
+              <button class="more" type="button" data-more>...more</button>
+            </section>
+          </div>
+
+          <div class="media"><img src="${post.media}" alt="post media"></div>
+
+          <div class="stats">
+            <div class="stats-left">
+              ${reactionIconsMarkup()}
+              <span>${post.likes}</span>
+            </div>
+            <div class="stats-right">${post.comments} comments &middot; ${post.reposts} reposts</div>
+          </div>
+
+          <h3 class="reactions-title">Reactions</h3>
+          <div class="facepile">${facepileMarkup()}</div>
+
+          <div class="actions">
+            <div class="identity">
+              <span class="identity-avatar"><img src="${selfAvatar}" alt="you"></span>
+              <span>&#9662;</span>
+            </div>
+            <button class="action" type="button">
+              <svg viewBox="0 0 24 24"><path d="M7 10v10H4V10h3zm13 1.5c0-1.4-1.1-2.5-2.5-2.5H13l.6-3.4v-.2c0-.6-.2-1.2-.7-1.7l-1-1L6.6 8.1C6.2 8.5 6 9 6 9.6V20c0 1.1.9 2 2 2h8.5c.8 0 1.5-.5 1.8-1.2l2.5-6.3c.1-.3.2-.6.2-1z"></path></svg>
+              <span>Like</span>
+            </button>
+            <button class="action" type="button">
+              <svg viewBox="0 0 24 24"><path d="M21 14a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9z"></path></svg>
+              <span>Comment</span>
+            </button>
+            <button class="action" type="button">
+              <svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+              <span>Repost</span>
+            </button>
+            <button class="action" type="button">
+              <svg viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg>
+              <span>Send</span>
+            </button>
+          </div>
+
+          <div class="comment-row">
+            <span class="my-avatar"><img src="${selfAvatar}" alt="you"></span>
+            <div class="comment-box">
+              <span>Add a comment...</span>
+              <span class="comment-icons" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8 15c1 .8 2.3 1.2 4 1.2s3-.4 4-1.2"></path></svg>
+                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="M21 15l-5-5-7 7"></path></svg>
+              </span>
+            </div>
+          </div>
+        </article>
+      `;
+
+      const copy = target.querySelector("[data-copy]");
+      const line = target.querySelector("[data-copy-line]");
+      const more = target.querySelector("[data-more]");
+
+      if (!copy || !line || !more) {
+        return;
+      }
+
+      line.innerHTML = formatHashtags(post.line);
+      more.textContent = "...more";
+      copy.classList.remove("expanded");
+
+      more.onclick = () => {
+        const expanded = copy.classList.toggle("expanded");
+        line.innerHTML = expanded ? formatHashtags(post.full) : formatHashtags(post.line);
+        more.textContent = expanded ? "less" : "...more";
+      };
+    }
+
+    function nextSlide() {
+      if (animating) {
+        return;
+      }
+
+      animating = true;
+      const next = (current + 1) % posts.length;
+      updateNav(next);
+      slideTrack.style.transform = "translateX(-50%)";
+
+      window.setTimeout(() => {
+        current = next;
+        slideTrack.classList.add("no-transition");
+        renderPost(front, posts[current]);
+        renderPost(back, posts[(current + 1) % posts.length]);
+        slideTrack.style.transform = "translateX(0)";
+        void slideTrack.offsetWidth;
+        slideTrack.classList.remove("no-transition");
+        animating = false;
+      }, 760);
+    }
+
+    function init() {
+      buildNav();
+      renderPost(front, posts[0]);
+      renderPost(back, posts[1]);
+      updateNav(0);
+
+      window.setInterval(nextSlide, 3900);
+    }
+
+    init();
+  </script>
+</body>
+</html>
